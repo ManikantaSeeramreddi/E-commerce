@@ -1,4 +1,8 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+// Automatically uses your deployed Render backend URL in production,
+// or falls back to localhost:5000 during local development
+const API_BASE_URL = process.env.REACT_APP_API_URL
+  ? `${process.env.REACT_APP_API_URL.replace(/\/$/, '')}/api`
+  : 'http://localhost:5000/api';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('eshop_token');
