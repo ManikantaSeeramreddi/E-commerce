@@ -1,7 +1,8 @@
-// Automatically uses your deployed Render backend URL in production,
-// or falls back to localhost:5000 during local development
-const API_BASE_URL = process.env.REACT_APP_API_URL
-  ? `${process.env.REACT_APP_API_URL.replace(/\/$/, '')}/api`
+// Replace this with your ACTUAL backend service URL on Render:
+const BACKEND_RENDER_URL = 'https://YOUR-BACKEND-NAME.onrender.com';
+
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? `${(process.env.REACT_APP_API_URL || BACKEND_RENDER_URL).replace(/\/$/, '')}/api`
   : 'http://localhost:5000/api';
 
 const getAuthHeaders = () => {
