@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: eshop-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/products
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        fromService:
+          type: web
+          name: eshop-frontend
+          property: host
+
+  - type: web
+    name: eshop-frontend
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./build
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          type: web
+          name: eshop-api
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

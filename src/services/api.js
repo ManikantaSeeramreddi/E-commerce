@@ -1,9 +1,13 @@
-// Replace this with your ACTUAL backend service URL on Render:
 const BACKEND_RENDER_URL = 'https://YOUR-BACKEND-NAME.onrender.com';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? `${(process.env.REACT_APP_API_URL || BACKEND_RENDER_URL).replace(/\/$/, '')}/api`
+  ? `${normalizeApiOrigin(process.env.REACT_APP_API_URL || BACKEND_RENDER_URL)}/api`
   : 'http://localhost:5000/api';
+
+function normalizeApiOrigin(origin) {
+  const trimmedOrigin = origin.replace(/\/$/, '');
+  return /^https?:\/\//i.test(trimmedOrigin) ? trimmedOrigin : `https://${trimmedOrigin}`;
+}
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('eshop_token');

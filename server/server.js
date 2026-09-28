@@ -10,7 +10,16 @@ const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eshop';
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_998877_production';
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+const allowedOrigins = [
+  'http://localhost:3000',
+  ...(process.env.CLIENT_URL || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+    .map((origin) => /^https?:\/\//i.test(origin) ? origin : `https://${origin}`)
+];
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 // ==================== DATABASE CONNECTION & INITIAL SEED ====================
@@ -123,22 +132,23 @@ const Cart = mongoose.model('Cart', cartSchema);
 // ==================== AUTO-SEED LOGIC ====================
 async function seedDedicatedAdmin() {
   try {
-    const adminEmail = 'manikanta00645@gmail.com';
-    const existing = await Admin.findOne({ email: adminEmail });
-    const hashedPassword = await bcrypt.hash('manikanta', 10);
-
-    if (!existing) {
-      await Admin.create({
-        name: 'Super Admin Manikanta',
-        email: adminEmail,
-        password: hashedPassword,
-        role: 'admin'
-      });
-      console.log('👑 Dedicated Admin Seeded: manikanta00645@gmail.com / manikanta');
-    } else {
-      existing.password = hashedPassword;
-      await existing.save();
+    const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase().trim();
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminEmail || !adminPassword) {
+      console.warn('Skipping admin seed: ADMIN_EMAIL and ADMIN_PASSWORD must be configured.');
+      return;
     }
+
+    const existing = await Admin.findOne({ email: adminEmail });
+    if (existing) return;
+
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+    await Admin.create({
+      email: adminEmail,
+      password: hashedPassword,
+      role: 'admin'
+    });
+    console.log(`Dedicated admin seeded: ${adminEmail}`);
   } catch (err) {
     console.error('Error seeding admin:', err);
   }
